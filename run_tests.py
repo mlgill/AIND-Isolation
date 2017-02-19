@@ -9,3 +9,6 @@ print('Finished Minimax Test')
 
 p1.test_alphabeta_interface()
 print('Finished Alphabeta Interface Test')
+
+p1.test_alphabeta()
+print('Finished Alphabeta Test')

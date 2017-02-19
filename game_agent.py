@@ -8,7 +8,8 @@ relative strength using tournament.py and include the results in your report.
 """
 import random
 import numpy as np
-
+import logging
+logging.basicConfig(level=logging.INFO)
 
 class Timeout(Exception):
     """Subclass base exception for code clarity."""
@@ -122,7 +123,10 @@ class CustomPlayer:
 
 
         # Setup the search type
-        search_type = self.minimax
+        if self.method == 'minimax':
+            search_type = self.minimax
+        else:
+            search_type = self.alphabeta
 
 
         # Setup the initial best move
@@ -130,19 +134,34 @@ class CustomPlayer:
         if len(legal_moves) > 0:
             best_move = legal_moves[0]
 
+
+        # Setup the search range to either cover the entire range allowed by the system
+        # or just that specified during initializaiton
+        if self.iterative:
+            search_range = (1, sys.maxsize)
+        else:
+            search_range = (self.search_depth, self.search_depth + 1)
+
+
         try:
             # The search method call (alpha beta or minimax) should happen in
             # here in order to avoid timeout. The try/except block will
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
 
-            for depth in range(self.search_depth, self.search_depth+1):
+            print(search_range[0], search_range[1])
+            for depth in range(search_range[0], search_range[1]):
 
                 best_score, best_move = search_type(game, depth)
 
+                # Stop if at the bottom of the search tree
+                print(best_score)
+                if ((best_score == float("+inf")) or (best_score == float("-inf"))):
+                    break
+
         except Timeout:
             # Handle any actions required at timeout, if necessary
-            print('ERROR')
+            logging.error('Timeout')
             pass
 
         return best_move
@@ -201,12 +220,8 @@ class CustomPlayer:
         # Get max or min, depending on which player is active
         if maximizing_player:
             ((score, X), selected_move) = max(move_and_score)
-            #print(max(move_scores))
         else:
             ((score, X), selected_move) = min(move_and_score)
-            #print(min(move_scores))
-        
-        #print(move_scores, score, move)
         
         return score, selected_move
 
@@ -262,19 +277,32 @@ class CustomPlayer:
             return self.score(game, self), remaining_moves[0]
 
             
-        # Run minimax for each move recursively until the maximum depth has been reached
-        move_and_score = [(self.minimax(game.forecast_move(m), 
-                               depth - 1, 
-                               np.invert(maximizing_player)), m) for m in remaining_moves]
+        # Run alphabeta for each move recursively until the maximum depth has been reached
+        move_and_score = list()
+        for m in remaining_moves:
+            score, X = self.alphabeta(game.forecast_move(m), 
+                                      depth - 1, 
+                                      alpha, 
+                                      beta, 
+                                      np.invert(maximizing_player))
         
-        
+            #logging.info('{} {}'.format(score, X))
+            move_and_score.append((score, m))
+
+            if (maximizing_player and (score > alpha)):
+                    alpha = score
+            elif ((not maximizing_player) and (score < beta)): 
+                    beta = score
+
+            if beta <= alpha:
+                # logging.info('Pruned a leaf.')
+                break
+
         # Get max or min, depending on which player is active
         if maximizing_player:
-            ((score, X), selected_move) = max(move_and_score)
-            #print(max(move_scores))
+            final_score = max(move_and_score)
         else:
-            ((score, X), selected_move) = min(move_and_score)
-            #print(min(move_scores))
+            final_score = min(move_and_score)
         
-        return score, selected_move
+        return final_score
         
