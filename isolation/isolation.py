@@ -278,10 +278,15 @@ class Board(object):
         p1_loc = self.__last_player_move__[self.__player_1__]
         p2_loc = self.__last_player_move__[self.__player_2__]
 
-        out = ''
+        out = '    '
+
+        for i in range(self.width):
+            out += ' {}  '.format(i)
+
+        out += '\n'
 
         for i in range(self.height):
-            out += ' | '
+            out += ' {} | '.format(i)
 
             for j in range(self.width):
 
@@ -295,7 +300,7 @@ class Board(object):
                     out += '-'
 
                 out += ' | '
-            out += '\n\r'
+            out += '\n'
 
         return out
 
