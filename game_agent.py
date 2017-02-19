@@ -252,5 +252,29 @@ class CustomPlayer:
         if self.time_left() < self.TIMER_THRESHOLD:
             raise Timeout()
 
-        # TODO: finish this function!
-        raise NotImplementedError
+        # Get a list of remaining moves for the current player
+        remaining_moves = game.get_legal_moves()
+
+        # The exit conditions for the recursion
+        if len(remaining_moves) == 0:
+            return (-1, -1)
+        elif depth == 0:
+            return self.score(game, self), remaining_moves[0]
+
+            
+        # Run minimax for each move recursively until the maximum depth has been reached
+        move_and_score = [(self.minimax(game.forecast_move(m), 
+                               depth - 1, 
+                               np.invert(maximizing_player)), m) for m in remaining_moves]
+        
+        
+        # Get max or min, depending on which player is active
+        if maximizing_player:
+            ((score, X), selected_move) = max(move_and_score)
+            #print(max(move_scores))
+        else:
+            ((score, X), selected_move) = min(move_and_score)
+            #print(min(move_scores))
+        
+        return score, selected_move
+        
