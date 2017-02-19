@@ -9,11 +9,45 @@ relative strength using tournament.py and include the results in your report.
 import random
 import numpy as np
 import logging
+import sys
+
 logging.basicConfig(level=logging.INFO)
 
 class Timeout(Exception):
     """Subclass base exception for code clarity."""
     pass
+
+
+def improved_score(game, player):
+    """The "Improved" evaluation function discussed in lecture that outputs a
+    score equal to the difference in the number of moves available to the
+    two players.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves - opp_moves)
 
 
 def custom_score(game, player):
@@ -39,7 +73,7 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    return random.random()
+    return improved_score(game, player)
 
 
 class CustomPlayer:
@@ -149,19 +183,17 @@ class CustomPlayer:
             # automatically catch the exception raised by the search method
             # when the timer gets close to expiring
 
-            print(search_range[0], search_range[1])
             for depth in range(search_range[0], search_range[1]):
 
                 best_score, best_move = search_type(game, depth)
 
                 # Stop if at the bottom of the search tree
-                print(best_score)
                 if ((best_score == float("+inf")) or (best_score == float("-inf"))):
                     break
 
         except Timeout:
             # Handle any actions required at timeout, if necessary
-            logging.error('Timeout')
+            logging.debug('Timeout')
             pass
 
         return best_move
@@ -206,7 +238,7 @@ class CustomPlayer:
 
         # The exit conditions for the recursion
         if len(remaining_moves) == 0:
-            return (-1, -1)
+            return self.score(game, self), (-1, -1)
         elif depth == 0:
             return self.score(game, self), remaining_moves[0]
 
@@ -272,7 +304,7 @@ class CustomPlayer:
 
         # The exit conditions for the recursion
         if len(remaining_moves) == 0:
-            return (-1, -1)
+            return self.score(game, self), (-1, -1)
         elif depth == 0:
             return self.score(game, self), remaining_moves[0]
 

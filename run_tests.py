@@ -2,13 +2,19 @@ from agent_test import Project1Test
 p1 = Project1Test()
 
 p1.test_minimax_interface()
-print('Finished Minimax Interface Test')
+print('Passed Minimax Interface Test')
 
 p1.test_minimax()
-print('Finished Minimax Test')
+print('Passed Minimax Test')
 
 p1.test_alphabeta_interface()
-print('Finished Alphabeta Interface Test')
+print('Passed Alphabeta Interface Test')
 
 p1.test_alphabeta()
-print('Finished Alphabeta Test')
+print('Passed Alphabeta Test')
+
+p1.test_get_move()
+print('Passed Get Move Test')
+
+p1.test_heuristic()
+print('Passed Heuristic Test')
