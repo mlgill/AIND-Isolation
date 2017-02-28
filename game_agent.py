@@ -102,7 +102,7 @@ def L2_score_difference_and_location(game, player):
     float
         The heuristic value of the current game state
     """
-    from math import abs
+    from math import fabs
 
     if game.is_loser(player):
         return float("-inf")
@@ -117,8 +117,10 @@ def L2_score_difference_and_location(game, player):
     if game.height % 2:
         board_middle += 1
 
-    loc[0] = abs(board_middle - loc[0])
-    loc[1] = abs(board_middle - loc[1])
+    loc = list(loc)
+    loc[0] = fabs(board_middle - loc[0])
+    loc[1] = fabs(board_middle - loc[1])
+    loc = tuple(loc)
 
     own_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
@@ -165,7 +167,7 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    return L1_score_difference(game, player)
+    return L2_score_difference_and_location(game, player)
 
 
 class CustomPlayer:
