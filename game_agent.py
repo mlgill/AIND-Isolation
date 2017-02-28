@@ -18,7 +18,7 @@ class Timeout(Exception):
     pass
 
 
-def improved_score(game, player):
+def L1_score_difference(game, player):
     """The "Improved" evaluation function discussed in lecture that outputs a
     score equal to the difference in the number of moves available to the
     two players.
@@ -50,6 +50,98 @@ def improved_score(game, player):
     return float(own_moves - opp_moves)
 
 
+def L2_score_difference(game, player):
+    """An evaluation function that outputs a score equal to the difference 
+    in the squares of number of moves available to the two players.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves**2 - opp_moves**2)
+
+
+def L2_score_difference_and_location(game, player):
+    """An evaluation function that outputs a score equal to the difference 
+    in the squares of number of moves available to the two players and weights
+    moves at the edge of the board more heavily.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    from math import abs
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    # Find proximity to corner
+    loc = game.get_player_location(player)
+
+    board_middle = int(game.height/2)
+    if game.height % 2:
+        board_middle += 1
+
+    loc[0] = abs(board_middle - loc[0])
+    loc[1] = abs(board_middle - loc[1])
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves**2 - opp_moves**2 + loc[0] + loc[1])
+
+
+
+def random_score_difference(game, player):
+    """A function  that outputs a random score between 0 and 1.
+
+    Parameters
+    ----------
+    none
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+
+    return float(random.random() - 0.5)
+
+
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
@@ -73,7 +165,7 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
-    return improved_score(game, player)
+    return L1_score_difference(game, player)
 
 
 class CustomPlayer:
@@ -187,13 +279,19 @@ class CustomPlayer:
 
                 best_score, best_move = search_type(game, depth)
 
+                #logging.info('Timeout: {}'.format(tl))
+
                 # Stop if at the bottom of the search tree
                 if ((best_score == float("+inf")) or (best_score == float("-inf"))):
                     break
 
         except Timeout:
             # Handle any actions required at timeout, if necessary
-            logging.debug('Timeout')
+
+            if best_move == (-1, -1):
+                real_moves = game.get_legal_moves()
+                if len(real_moves) > 0:
+                    return real_moves[-1]
             pass
 
         return best_move
